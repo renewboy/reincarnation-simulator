@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { GameConfig } from '../types/game';
 import { getCountryNameCN } from '../utils/countryNames';
 
@@ -6,19 +6,29 @@ interface CountryWordCloudProps {
   config: GameConfig;
 }
 
-interface WordPosition {
+interface Star {
   text: string;
   x: number;
   y: number;
-  fontSize: number;
+  radius: number;
+  brightness: number;
   color: string;
   probability: number;
   name: string;
-  angle: number;
+  twinkleSpeed: number;
 }
 
 export default function CountryWordCloud({ config }: CountryWordCloudProps) {
-  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
+  const [hoveredStar, setHoveredStar] = useState<string | null>(null);
+  const [animationTime, setAnimationTime] = useState(0);
+
+  // 动画循环
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationTime(prev => prev + 0.02);
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
 
   // 获取所有国家并按投胎率排序
   const countries = useMemo(() => {
@@ -31,115 +41,99 @@ export default function CountryWordCloud({ config }: CountryWordCloudProps) {
       .sort((a, b) => b.probability - a.probability);
   }, [config.countries]);
 
-  // 生成星云能量球形状中的文字位置
-  const wordPositions = useMemo((): WordPosition[] => {
-    const centerX = 300;
-    const centerY = 300;
-    const mainRadius = 120; // 主星云半径
-    const outerRadius = 160; // 外圈半径
-    const innerRadius = 80; // 内圈半径
-
-    // 计算字体大小范围（根据投胎率）
-    const getFontSize = (probability: number): number => {
+  // 生成星空中的星星位置
+  const stars = useMemo((): Star[] => {
+    const starCount = 80;
+    const width = 800;
+    const height = 500;
+    
+    // 计算星星属性
+    const getStarProperties = (probability: number) => {
       const maxProb = countries[0].probability;
       const minProb = countries[countries.length - 1].probability;
       const range = maxProb - minProb;
       
-      const minSize = 12;
-      const maxSize = 28;
-      
+      // 星星半径：3-12像素
+      const minRadius = 3;
+      const maxRadius = 12;
       const normalized = (probability - minProb) / range;
-      return minSize + normalized * (maxSize - minSize);
+      const radius = minRadius + normalized * (maxRadius - minRadius);
+      
+      // 亮度：0.3-1.0
+      const brightness = 0.3 + normalized * 0.7;
+      
+      // 闪烁速度
+      const twinkleSpeed = 0.5 + Math.random() * 1.5;
+      
+      return { radius, brightness, twinkleSpeed };
     };
 
-    // 游戏风格的紫粉渐变配色
-    const getGameColor = (rank: number, probability: number): string => {
-      const gradients = [
-        { main: '#ec4899', secondary: '#f472b6' }, // 粉红 - 最高概率
-        { main: '#a855f7', secondary: '#c084fc' }, // 紫色
-        { main: '#8b5cf6', secondary: '#a78bfa' }, // 深紫
-        { main: '#7c3aed', secondary: '#8b5cf6' }, // 靛紫
-        { main: '#6366f1', secondary: '#818cf8' }, // 靛蓝
-        { main: '#3b82f6', secondary: '#60a5fa' }, // 蓝色
-        { main: '#06b6d4', secondary: '#22d3ee' }, // 青色
-        { main: '#10b981', secondary: '#34d399' }, // 绿色
-        { main: '#f59e0b', secondary: '#fbbf24' }, // 橙色
-        { main: '#f97316', secondary: '#fb923c' }, // 深橙
+    const generatedStars: Star[] = [];
+    
+    // 创建背景星尘
+    for (let i = 0; i < starCount; i++) {
+      const x = Math.random() * width;
+      const y = Math.random() * height;
+      const size = Math.random() * 2 + 1;
+      
+      generatedStars.push({
+        text: '', // 背景星尘没有文字
+        x,
+        y,
+        radius: size,
+        brightness: Math.random() * 0.5 + 0.1,
+        color: `hsl(${Math.random() * 60 + 200}, 70%, ${Math.random() * 40 + 60}%)`,
+        probability: 0,
+        name: '',
+        twinkleSpeed: Math.random() * 2 + 0.5,
+      });
+    }
+
+    // 添加国家星星
+    countries.slice(0, 50).forEach((country, index) => {
+      const angle = (index / 50) * Math.PI * 2;
+      const distance = 120 + Math.random() * 200;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      const x = centerX + Math.cos(angle) * distance;
+      const y = centerY + Math.sin(angle) * distance;
+      
+      const properties = getStarProperties(country.probability);
+      
+      // 星空主题配色
+      const starColors = [
+        '#fbbf24', // 金黄色 - 最亮的星
+        '#f59e0b', // 琥珀色
+        '#eab308', // 深黄色
+        '#84cc16', // lime绿
+        '#22d3ee', // 青色
+        '#3b82f6', // 蓝色
+        '#8b5cf6', // 紫色
+        '#ec4899', // 粉红色
       ];
       
-      // 根据排名选择渐变
-      const colorSet = gradients[rank % gradients.length];
+      const color = starColors[country.rank % starColors.length];
       
-      // 根据概率调整颜色透明度
-      const opacity = 0.7 + (probability / countries[0].probability) * 0.3;
-      
-      // 返回渐变色
-      return `url(#gradient-${rank % gradients.length})`;
-    };
-
-    const positions: WordPosition[] = [];
-    const topCountries = countries.slice(0, 60); // 显示前60个国家
-
-    topCountries.forEach((country, index) => {
-      // 根据排名决定位置层级
-      const tier = Math.floor(index / 12); // 12个国家为一级
-      const positionInTier = index % 12;
-      
-      // 计算角度
-      const angle = (positionInTier / 12) * 2 * Math.PI + (tier * Math.PI / 6);
-      
-      // 根据层级确定半径
-      let radius;
-      if (tier === 0) {
-        // 核心区域 - 最重要的国家
-        radius = innerRadius * (0.3 + Math.random() * 0.4);
-      } else if (tier === 1) {
-        // 中间区域
-        radius = innerRadius + (mainRadius - innerRadius) * (0.3 + Math.random() * 0.4);
-      } else {
-        // 外围区域
-        radius = mainRadius + (outerRadius - mainRadius) * (0.2 + Math.random() * 0.6);
-      }
-
-      // 添加一些随机性避免重叠
-      const randomOffset = (Math.random() - 0.5) * 20;
-      
-      const x = centerX + Math.cos(angle) * (radius + randomOffset);
-      const y = centerY + Math.sin(angle) * (radius + randomOffset);
-      
-      const fontSize = getFontSize(country.probability);
-
-      positions.push({
+      generatedStars.push({
         text: getCountryNameCN(country.name),
         x,
         y,
-        fontSize,
-        color: getGameColor(country.rank, country.probability),
+        radius: properties.radius,
+        brightness: properties.brightness,
+        color,
         probability: country.probability,
         name: country.name,
-        angle: angle * 180 / Math.PI,
+        twinkleSpeed: properties.twinkleSpeed,
       });
     });
 
-    return positions;
+    return generatedStars;
   }, [countries]);
 
-  // 生成渐变定义
-  const gradients = useMemo(() => {
-    return Array.from({ length: 10 }, (_, i) => (
-      <defs key={i}>
-        <radialGradient id={`gradient-${i}`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={['#ec4899', '#a855f7', '#8b5cf6', '#7c3aed', '#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#f97316'][i]} stopOpacity="0.9" />
-          <stop offset="50%" stopColor={['#f472b6', '#c084fc', '#a78bfa', '#8b5cf6', '#818cf8', '#60a5fa', '#22d3ee', '#34d399', '#fbbf24', '#fb923c'][i]} stopOpacity="0.7" />
-          <stop offset="100%" stopColor={['#f472b6', '#c084fc', '#a78bfa', '#8b5cf6', '#818cf8', '#60a5fa', '#22d3ee', '#34d399', '#fbbf24', '#fb923c'][i]} stopOpacity="0.3" />
-        </radialGradient>
-      </defs>
-    ));
-  }, []);
-
   return (
-    <div className="backdrop-blur-glass bg-glass-bg border border-glass-border rounded-2xl p-6 shadow-2xl">
-      <div className="mb-6">
+    <div className="backdrop-blur-glass bg-glass-bg border border-glass-border rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+      <div className="mb-6 relative z-10">
         <h2 className="text-2xl font-bold text-white mb-2">
           全球投胎概率分布
         </h2>
@@ -147,122 +141,153 @@ export default function CountryWordCloud({ config }: CountryWordCloudProps) {
           数据来源：2024年全球各国新生儿出生人数 | 总计：93,370,000 名新生儿
         </p>
         <p className="text-gray-400 text-sm mt-1">
-          字体大小表示投胎率高低，星云形状展现全球分布
+          星星大小和亮度表示投胎率高低，闪烁的星空展现宇宙般的分布
         </p>
       </div>
 
-      {/* 星云词云图容器 */}
+      {/* 星空容器 */}
       <div className="relative flex justify-center">
         <div className="relative">
-          {/* 主星云容器 */}
+          {/* 背景渐变 */}
+          <div className="absolute inset-0 bg-gradient-radial from-indigo-900/20 via-purple-900/10 to-transparent rounded-xl" />
+          
           <svg 
-            width="600" 
-            height="600" 
-            viewBox="0 0 600 600" 
+            width="800" 
+            height="500" 
+            viewBox="0 0 800 500" 
             className="relative z-10"
           >
-            {/* 渐变定义 */}
-            {gradients}
-            
-            {/* 星云光晕背景 */}
-            <circle
-              cx="300"
-              cy="300"
-              r="150"
-              fill="url(#gradient-0)"
-              opacity="0.1"
-              className="animate-pulse-glow blur-xl"
-            />
-            
-            {/* 外层光晕 */}
-            <circle
-              cx="300"
-              cy="300"
-              r="180"
-              fill="url(#gradient-2)"
-              opacity="0.05"
-              className="animate-pulse-glow blur-2xl"
-              style={{ animationDelay: '1s' }}
-            />
-            
-            {/* 国家名称文字 */}
-            {wordPositions.map(({ text, x, y, fontSize, color, probability, name, angle }, index) => {
-              const isHovered = hoveredCountry === name;
+            {/* 星座连线（仅对前10个国家） */}
+            {countries.slice(0, 10).map((country, index) => {
+              if (index === 9) return null; // 不连接最后一个
+              const currentStar = stars.find(s => s.name === country.name);
+              const nextStar = stars.find(s => s.name === countries[index + 1].name);
+              
+              if (!currentStar || !nextStar) return null;
               
               return (
-                <g key={index} className="cursor-pointer">
-                  <text
-                    x={x}
-                    y={y}
-                    fontSize={fontSize}
-                    fill={isHovered ? '#ffffff' : color}
-                    fontWeight={fontSize > 20 ? "bold" : "medium"}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className={`transition-all duration-300 ${
-                      isHovered 
-                        ? 'drop-shadow-2xl brightness-125 scale-110' 
-                        : 'drop-shadow-lg hover:brightness-110'
-                    }`}
-                    style={{
-                      fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-                      filter: isHovered 
-                        ? 'drop-shadow(0 0 10px rgba(236, 72, 153, 0.8))' 
-                        : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
-                    }}
-                    onMouseEnter={() => setHoveredCountry(name)}
-                    onMouseLeave={() => setHoveredCountry(null)}
-                    transform={`rotate(${angle * 0.5} ${x} ${y})`}
-                  >
-                    {text}
-                  </text>
-                </g>
+                <line
+                  key={`line-${index}`}
+                  x1={currentStar.x}
+                  y1={currentStar.y}
+                  x2={nextStar.x}
+                  y2={nextStar.y}
+                  stroke="rgba(59, 130, 246, 0.2)"
+                  strokeWidth="1"
+                  className="animate-pulse"
+                />
               );
             })}
             
-            {/* 核心发光点 */}
-            <circle
-              cx="300"
-              cy="300"
-              r="4"
-              fill="#ec4899"
-              className="animate-pulse"
-            />
+            {/* 星星和星尘 */}
+            {stars.map((star, index) => {
+              const isHovered = hoveredStar === star.name;
+              const twinkle = Math.sin(animationTime * star.twinkleSpeed + index) * 0.3 + 0.7;
+              const currentBrightness = star.brightness * twinkle;
+              
+              if (star.text === '') {
+                // 背景星尘
+                return (
+                  <circle
+                    key={`dust-${index}`}
+                    cx={star.x}
+                    cy={star.y}
+                    r={star.radius}
+                    fill={star.color}
+                    opacity={currentBrightness * 0.6}
+                    className="transition-opacity duration-1000"
+                  />
+                );
+              }
+              
+              // 国家星星
+              return (
+                <g key={`star-${index}`} className="cursor-pointer">
+                  {/* 发光效果 */}
+                  <circle
+                    cx={star.x}
+                    cy={star.y}
+                    r={star.radius * 3}
+                    fill={star.color}
+                    opacity={currentBrightness * 0.2}
+                    className="blur-sm"
+                  />
+                  
+                  {/* 主星星 */}
+                  <circle
+                    cx={star.x}
+                    cy={star.y}
+                    r={star.radius}
+                    fill={star.color}
+                    opacity={currentBrightness}
+                    className={`transition-all duration-300 ${
+                      isHovered ? 'drop-shadow-2xl brightness-150 scale-125' : 'drop-shadow-lg'
+                    }`}
+                    onMouseEnter={() => setHoveredStar(star.name)}
+                    onMouseLeave={() => setHoveredStar(null)}
+                  />
+                  
+                  {/* 十字光芒 */}
+                  <g opacity={currentBrightness * 0.8}>
+                    <line x1={star.x - star.radius * 2} y1={star.y} x2={star.x + star.radius * 2} y2={star.y} stroke={star.color} strokeWidth="0.5" />
+                    <line x1={star.x} y1={star.y - star.radius * 2} x2={star.x} y2={star.y + star.radius * 2} stroke={star.color} strokeWidth="0.5" />
+                  </g>
+                  
+                  {/* 国家名称（仅在大星星上显示） */}
+                  {star.radius > 8 && (
+                    <text
+                      x={star.x}
+                      y={star.y + star.radius + 15}
+                      fontSize={Math.max(10, star.radius - 2)}
+                      fill="#ffffff"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="pointer-events-none drop-shadow-md"
+                      style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
+                    >
+                      {star.text}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
           </svg>
           
-          {/* 浮动装饰元素 */}
-          <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full opacity-20 animate-float" />
-          <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full opacity-15 animate-float" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 -left-8 w-6 h-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full opacity-10 animate-float" style={{ animationDelay: '2s' }} />
+          {/* 粒子效果装饰 */}
+          <div className="absolute top-10 left-10 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75" />
+          <div className="absolute top-32 right-16 w-1 h-1 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute bottom-20 left-1/3 w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
+          <div className="absolute bottom-32 right-1/4 w-1 h-1 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }} />
         </div>
 
         {/* 悬停提示 */}
-        {hoveredCountry && (
-          <div className="absolute z-50 top-4 right-4 px-4 py-3 bg-black/90 border border-pink-500/30 rounded-xl shadow-2xl backdrop-blur-sm animate-fade-in">
-            <div className="text-pink-400 text-sm font-bold">
-              {hoveredCountry}
+        {hoveredStar && (
+          <div className="absolute z-50 top-4 right-4 px-4 py-3 bg-black/90 border border-yellow-500/30 rounded-xl shadow-2xl backdrop-blur-sm animate-fade-in">
+            <div className="text-yellow-400 text-sm font-bold">
+              {hoveredStar}
             </div>
             <div className="text-white text-xs mt-1">
-              投胎概率：{countries.find(c => getCountryNameCN(c.name) === hoveredCountry)?.probability.toFixed(3)}%
+              投胎概率：{countries.find(c => getCountryNameCN(c.name) === hoveredStar)?.probability.toFixed(3)}%
             </div>
           </div>
         )}
       </div>
 
       {/* 统计信息 */}
-      <div className="mt-6 pt-4 border-t border-white/10">
+      <div className="mt-6 pt-4 border-t border-white/10 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-400">
           <div className="flex items-center justify-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-pink-300 animate-pulse"></div>
-            <span>核心国家（最高投胎率）</span>
+            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 animate-pulse shadow-lg"></div>
+            <span>巨星（最高投胎率）</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-300"></div>
-            <span>主要国家（中等投胎率）</span>
+            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 shadow-md"></div>
+            <span>亮星（中等投胎率）</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-300"></div>
-            <span>其他地区（低投胎率）</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-gray-400 to-gray-600"></div>
+            <span>暗星（低投胎率）</span>
           </div>
         </div>
       </div>

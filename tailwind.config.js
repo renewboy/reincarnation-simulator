@@ -64,6 +64,7 @@ module.exports = {
 				'gradient-game': 'linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 100%)',
 				'gradient-primary-btn': 'linear-gradient(90deg, #ec4899 0%, #a855f7 100%)',
 				'gradient-secondary-btn': 'linear-gradient(90deg, #f59e0b 0%, #f97316 100%)',
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 			},
 			backdropBlur: {
 				'glass': '10px',
