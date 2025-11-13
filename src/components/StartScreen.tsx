@@ -43,7 +43,7 @@ export default function StartScreen({ config, gameState, onStart, onOpenSettings
                 <span className="text-gray-300 text-lg">资产</span>
               </div>
               <div className="text-3xl font-bold text-white">
-                金 {gameState.gold}
+                金币 {gameState.gold}
               </div>
               {gameState.reincarnationCount > 0 && (
                 <div className="text-sm text-purple-300">
