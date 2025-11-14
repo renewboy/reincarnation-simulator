@@ -11,9 +11,9 @@ export const GAME_CONFIG = {
     // 可用模型列表
     AVAILABLE_MODELS: [
       {
-        id: 'doubao-seed-1-6-lite-251015',
-        name: '豆包-seed-1.6-lite (最新版)',
-        description: '最新lite模型，响应速度快，适合正式体验',
+        id: 'doubao-seed-1-6-251015',
+        name: '豆包-seed-1.6-flash (最新版)',
+        description: '最新flash模型，响应速度快，适合正式体验',
         type: 'production'
       },
       {

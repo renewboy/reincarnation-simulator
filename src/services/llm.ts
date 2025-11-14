@@ -1,4 +1,4 @@
-import type { CharacterAttributes, MBTIPersonality, LifeEvent } from '../types/game';
+import type { CharacterAttributes, MBTIPersonality, LifeEvent, Message } from '../types/game';
 import { GAME_CONFIG } from '../config/gameConfig';
 import { getFakeLLMService } from './fakeLLM';
 
@@ -66,12 +66,12 @@ export async function generateLifeEvent(
   country: string,
   attributes: CharacterAttributes,
   personality: MBTIPersonality,
-  previousEvents: string[]
+  messages: Message[] = [],
 ): Promise<LifeEvent> {
   // 如果是fake模型，使用fake服务
   if (isFakeModel()) {
     const fakeService = getFakeLLMService(currentModel);
-    return await fakeService.generateLifeEvent(age, country, attributes, personality, previousEvents);
+    return await fakeService.generateLifeEvent(age, country, attributes, personality, messages);
   }
 
   const systemPrompt = `你是一个人生模拟游戏的事件生成器。根据角色的年龄、国家、属性和性格，生成一个真实且多样化的人生事件。
@@ -197,8 +197,7 @@ JSON格式要求：
   * 创造力：${attributes.creativity}/100 ${attributes.creativity > 70 ? '(杰出，富有想象力)' : attributes.creativity < 30 ? '(有限，缺乏创新)' : '(普通)'}
 - MBTI性格：${getMBTIDescription(personality)}
 
-${previousEvents.length > 0 ? `最近经历：\n${previousEvents.slice(-3).join('\n')}` : '这是人生的开始，还没有经历其他事件'}
-
+${messages.length > 0 ? '' : '这是人生的开始，还没有经历其他事件\n'}
 请基于以上信息生成一个真实的人生事件：
 1. 事件类型从以下随机选择：正面事件（机遇/成功）、挑战事件（竞争/压力）、意外事件（突发）、困难事件（挫折）、特殊事件（天灾/社会变迁）
 2. 事件要符合${age}岁年龄段和${country}国家特点
@@ -209,6 +208,12 @@ ${previousEvents.length > 0 ? `最近经历：\n${previousEvents.slice(-3).join(
 7. 事件不得与先前事件雷同
 生成一个生动具体的事件，让玩家有真实的代入感。`;
 
+  let currentMessages = messages.length > 0 ? [
+    { role: 'user', content: userPrompt }
+  ] : [ 
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
   try {
     const response = await fetch(DOUBAO_API_URL, {
       method: 'POST',
@@ -219,25 +224,24 @@ ${previousEvents.length > 0 ? `最近经历：\n${previousEvents.slice(-3).join(
       body: JSON.stringify({
         model: currentModel,
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
+          ...messages,
+          ...currentMessages
         ],
         stream: false,
-        max_tokens: 800,
-        temperature: 0.9,
+        max_tokens: 500,
+        temperature: 0.7,
         presence_penalty: 0.8,
-        frequency_penalty: 0.8,
         thinking:{
           type:'disabled'
         }
       }),
     });
-
     if (!response.ok) {
       throw new Error(`API请求失败: ${response.status}`);
     }
-
     const data = await response.json();
+    console.log('LLM原始响应:', data);
+    currentMessages.push(data.choices[0].message as Message);
     const content = data.choices[0].message.content.trim();
     
     // 尝试解析JSON
@@ -276,6 +280,7 @@ ${previousEvents.length > 0 ? `最近经历：\n${previousEvents.slice(-3).join(
           },
         },
       })),
+      messages: currentMessages as Message[],
     };
   } catch (error) {
     console.error('生成事件失败:', error);
@@ -327,7 +332,7 @@ function generateFallbackEvent(age: number, country: string): LifeEvent {
     },
   ];
   
-  return { age, ...events[0] };
+  return { age, ...events[0], messages: [] };
 }
 
 // 生成专业选项

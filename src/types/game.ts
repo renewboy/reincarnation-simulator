@@ -60,11 +60,19 @@ export interface MBTIPersonality {
   jp: number; // 判断-感知 (0-1, 0=判断, 1=感知)
 }
 
+
+export interface Message {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+  [key: string]: any;
+}
+
 // 人生事件
 export interface LifeEvent {
   age: number;
   description: string;
   options: EventOption[];
+  messages: Message[];
 }
 
 export interface EventOption {

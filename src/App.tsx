@@ -6,6 +6,7 @@ import EndScreen from './components/EndScreen';
 import EducationChoiceScreen from './components/EducationChoiceScreen';
 import ModelSettings from './components/ModelSettings';
 import AudioSettings from './components/AudioSettings';
+import ReincarnationAnimation from './components/ReincarnationAnimation';
 import { GAME_CONFIG } from './config/gameConfig';
 import { initAudioService, audioService } from './services/audioService';
 import { regionManager } from './utils/regions';
@@ -30,6 +31,16 @@ function App() {
   const [showModelSettings, setShowModelSettings] = useState(false);
   const [showAudioSettings, setShowAudioSettings] = useState(false);
   const [currentModel, setCurrentModelLocal] = useState<string>(GAME_CONFIG.LLM.MODEL);
+  const [showReincarnationAnimation, setShowReincarnationAnimation] = useState(false);
+
+  const handleStartReincarnation = () => {
+    setShowReincarnationAnimation(true);
+    // 2秒后自动消失并开始游戏
+    setTimeout(() => {
+      setShowReincarnationAnimation(false);
+      startReincarnation();
+    }, 2000);
+  };
 
   // 初始化音频服务
   useEffect(() => {
@@ -81,13 +92,18 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-game">
       {gameState.gamePhase === 'start' && (
-        <StartScreen
-          config={config}
-          gameState={gameState}
-          onStart={startReincarnation}
-          onOpenSettings={handleOpenSettings}
-          onOpenAudioSettings={handleOpenAudioSettings}
-        />
+        <>
+          <StartScreen
+            config={config}
+            gameState={gameState}
+            onStart={handleStartReincarnation}
+            onOpenSettings={handleOpenSettings}
+            onOpenAudioSettings={handleOpenAudioSettings}
+          />
+          
+          {/* 投胎动画组件 */}
+          {showReincarnationAnimation && <ReincarnationAnimation />}
+        </>
       )}
       
       {gameState.gamePhase === 'playing' && (

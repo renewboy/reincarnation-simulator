@@ -1,4 +1,4 @@
-import type { CharacterAttributes, MBTIPersonality, LifeEvent } from '../types/game';
+import type { CharacterAttributes, MBTIPersonality, LifeEvent, Message } from '../types/game';
 
 // Fake模型快速版本 - 用于调试
 export class FakeLLMService {
@@ -14,7 +14,7 @@ export class FakeLLMService {
     country: string,
     attributes: CharacterAttributes,
     personality: MBTIPersonality,
-    previousEvents: string[]
+    messages: Message[] = [],
   ): Promise<LifeEvent> {
     // 模拟API延迟
     await new Promise(resolve => setTimeout(resolve, this.modelId === 'fake-rapid' ? 100 : 500));
@@ -27,6 +27,7 @@ export class FakeLLMService {
       age,
       description: template.description,
       options: template.options,
+      messages: [],
     };
   }
 

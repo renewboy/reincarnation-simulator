@@ -162,8 +162,8 @@ export function useGameState() {
     ) => {
       setIsGeneratingEvent(true);
       try {
-        const previousEventDescriptions = history.map(e => e.description);
-        const event = await generateLifeEvent(age, country, attributes, personality, previousEventDescriptions);
+        const historyMessages = history.map(e => e.messages).flat();
+        const event = await generateLifeEvent(age, country, attributes, personality, historyMessages);
         setGameState((prev) => ({
           ...prev,
           currentEvent: event,
