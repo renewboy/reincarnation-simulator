@@ -7,7 +7,6 @@ import ResultModal from './ResultModal';
 import MajorSelection from './MajorSelection';
 import AcademicProgress from './AcademicProgress';
 import CareerSelection from './CareerSelection';
-import { getCountryNameCN } from '../utils/countryNames';
 import { generateMajorOptions, generateCareerOptions } from '../services/llm';
 
 interface GameScreenProps {
@@ -340,6 +339,7 @@ export default function GameScreen({
       {educationChoices.majors && (
         <MajorSelection
           currentCountry={gameState.currentCountry}
+          currentAge={gameState.currentAge}
           attributes={gameState.attributes}
           personality={gameState.personality}
           majorOptions={educationChoices.majors}

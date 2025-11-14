@@ -3,7 +3,7 @@
  * 负责地区背景音乐的播放、切换和音量控制
  */
 
-import { REGIONS, getCountryRegion, getRegionMusicPath, Region } from '../utils/regions';
+import {regionManager, Region } from '../utils/regions';
 
 export interface AudioSettings {
   enabled: boolean;
@@ -62,8 +62,7 @@ class AudioService {
     if (!this.audioElement || !this.settings.enabled) return;
 
     try {
-      const musicPath = getRegionMusicPath(region);
-      console.log('audioService playRegionMusic', region, musicPath);
+      const musicPath = regionManager.getRegionMusicPath(region);
       
       // 如果当前播放的音乐已是目标音乐，跳过
       if (this.settings.currentRegion === region) {
@@ -144,7 +143,7 @@ class AudioService {
    * 根据国家播放对应地区音乐
    */
   async playCountryMusic(country: string): Promise<void> {
-    const region = getCountryRegion(country);
+    const region = regionManager.getCountryRegion(country);
     console.log('audioService playCountryMusic', country, region);
     if (region) {
       await this.playRegionMusic(region);

@@ -8,7 +8,7 @@ import ModelSettings from './components/ModelSettings';
 import AudioSettings from './components/AudioSettings';
 import { GAME_CONFIG } from './config/gameConfig';
 import { initAudioService, audioService } from './services/audioService';
-import { getCountryRegion } from './utils/regions';
+import { regionManager } from './utils/regions';
 import { COUNTRY_NAMES_EN } from './utils/countryNames';
 
 function App() {
@@ -23,7 +23,6 @@ function App() {
     handleMajorSelection,
     handleAcademicChoice,
     onSkipEducation,
-    checkEducationTriggers,
     onModelChange,
     setCurrentModel,
   } = useGameState();
@@ -34,7 +33,6 @@ function App() {
 
   // 初始化音频服务
   useEffect(() => {
-    console.log('App useEffect initAudioService');
     initAudioService();
   }, []);
 
@@ -42,8 +40,7 @@ function App() {
   useEffect(() => {
     if (gameState.currentCountry && audioService.isEnabled()) {
       const countryENName = COUNTRY_NAMES_EN[gameState.currentCountry];
-      const region = getCountryRegion(countryENName);
-      console.log(`App useEffect playCountryMusic ${gameState.currentCountry} ${countryENName} ${region}`);
+      const region = regionManager.getCountryRegion(countryENName);
       if (region) {
         audioService.playRegionMusic(region);
       }

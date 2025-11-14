@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX, Settings } from 'lucide-react';
 import { audioService } from '../services/audioService';
-import { REGIONS, REGION_NAMES_CN } from '../utils/regions';
+import { Region, regionManager } from '../utils/regions';
 
 interface AudioSettingsProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface AudioSettingsProps {
 export default function AudioSettings({ isOpen, onClose }: AudioSettingsProps) {
   const [isEnabled, setIsEnabled] = useState(true);
   const [volume, setVolume] = useState(0.6);
-  const [currentRegion, setCurrentRegion] = useState<string | null>(null);
+  const [currentRegion, setCurrentRegion] = useState<Region | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -105,7 +105,7 @@ export default function AudioSettings({ isOpen, onClose }: AudioSettingsProps) {
           {isEnabled && currentRegion && (
             <div className="bg-blue-50 p-3 rounded-lg">
               <div className="text-sm text-blue-700">
-                <strong>当前播放：</strong> {REGION_NAMES_CN[currentRegion as keyof typeof REGION_NAMES_CN]}地区背景音乐
+                <strong>当前播放：</strong> {regionManager.getRegionName(currentRegion as Region)}地区背景音乐
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <button
@@ -117,18 +117,6 @@ export default function AudioSettings({ isOpen, onClose }: AudioSettingsProps) {
               </div>
             </div>
           )}
-
-          {/* 地区音乐说明 */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium text-gray-800 mb-2">地区音乐介绍</h3>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div>• 东亚：古典宫廷音乐融合现代都市元素</div>
-              <div>• 欧洲：莫扎特式优雅古典主义音乐</div>
-              <div>• 北美：爵士蓝调风格融合现代流行</div>
-              <div>• 其他地区：展现各地独特音乐文化特色</div>
-            </div>
-          </div>
-
           {/* 重置按钮 */}
           <div className="flex gap-2">
             <button

@@ -15,6 +15,7 @@ import type {
 import { generateLifeEvent, generateMajorOptions, generateCareerOptions, setCurrentModel as setLLMCurrentModel } from '../services/llm';
 import { SHOP_ITEMS } from '../types/game';
 import { getCountryNameCN } from '@/utils/countryNames';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 // 教育系统年龄配置 - 统一管理
 const AGE_CONFIG = {
@@ -115,10 +116,7 @@ export function useGameState() {
 
   // 加载游戏配置
   useEffect(() => {
-    fetch('/game_config.json')
-      .then((res) => res.json())
-      .then((data) => setConfig(data))
-      .catch((err) => console.error('加载游戏配置失败:', err));
+    setConfig(GAME_CONFIG.GAME_DATA);
   }, []);
 
   // 开始投胎
@@ -369,6 +367,16 @@ export function useGameState() {
             newAttributes[key as keyof CharacterAttributes] = Math.max(
               0,
               Math.min(100, newAttributes[key as keyof CharacterAttributes] + value)
+            );
+          }
+        });
+        
+        const newPersonality = { ...prev.personality };
+        Object.entries(item.effects.personality).forEach(([key, value]) => {
+          if (value !== undefined) {
+            newPersonality[key as keyof MBTIPersonality] = Math.max(
+              0,
+              Math.min(1, newPersonality[key as keyof MBTIPersonality] + value)
             );
           }
         });
@@ -661,7 +669,6 @@ export function useGameState() {
     handleMajorSelection,
     handleAcademicChoice,
     onSkipEducation,
-    checkEducationTriggers,
     generateEducationOptions,
     onModelChange,
     setCurrentModel: setLLMCurrentModel,

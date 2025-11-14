@@ -3,185 +3,151 @@
  * 将80个国家按照9个地区进行分类
  */
 
-export const REGIONS = {
-  EAST_ASIA: 'east_asia',
-  CENTRAL_ASIA: 'central_asia', 
-  SOUTH_ASIA: 'south_asia',
-  MIDDLE_EAST: 'middle_east',
-  EUROPE: 'europe',
-  NORTH_AMERICA: 'north_america',
-  SOUTH_AMERICA: 'south_america',
-  AFRICA: 'africa',
-  OCEANIA: 'oceania',
+// 导入游戏配置以动态生成国家地区映射
+import { GAME_CONFIG } from '../config/gameConfig';
+
+/**
+ * 地区配置接口，包含地区的所有信息
+ */
+export interface RegionConfig {
+  /** 地区唯一标识符 */
+  id: string;
+  /** 地区中文名称 */
+  nameCN: string;
+  /** 地区音乐文件路径 */
+  musicFile: string;
+}
+
+/**
+ * 所有地区的配置信息
+ * 使用统一的配置对象整合地区的所有属性
+ */
+export const REGION_CONFIGS = {
+  EAST_ASIA: {
+    id: 'east_asia',
+    nameCN: '东亚',
+    musicFile: 'audio/east_asia_bgm.mp3',
+  },
+  CENTRAL_ASIA: {
+    id: 'central_asia',
+    nameCN: '中亚',
+    musicFile: 'audio/central_asia_bgm.mp3',
+  },
+  SOUTH_ASIA: {
+    id: 'south_asia',
+    nameCN: '南亚',
+    musicFile: 'audio/south_asia_bgm.mp3',
+  },
+  SOUTH_EAST_ASIA: {
+    id: 'south_east_asia',
+    nameCN: '东南亚',
+    musicFile: 'audio/south_east_asia_bgm.mp3',
+  },
+  MIDDLE_EAST: {
+    id: 'middle_east',
+    nameCN: '中东',
+    musicFile: 'audio/middle_east_bgm.mp3',
+  },
+  EUROPE: {
+    id: 'europe',
+    nameCN: '欧洲',
+    musicFile: 'audio/europe_bgm.mp3',
+  },
+  NORTH_AMERICA: {
+    id: 'north_america',
+    nameCN: '北美',
+    musicFile: 'audio/north_america_bgm.mp3',
+  },
+  SOUTH_AMERICA: {
+    id: 'south_america',
+    nameCN: '南美',
+    musicFile: 'audio/south_america_bgm.mp3',
+  },
+  AFRICA: {
+    id: 'africa',
+    nameCN: '非洲',
+    musicFile: 'audio/africa_bgm.mp3',
+  },
+  OCEANIA: {
+    id: 'oceania',
+    nameCN: '大洋洲',
+    musicFile: 'audio/oceania_bgm.mp3',
+  },
 } as const;
 
+// 定义REGIONS常量（内部使用，不导出）
+const REGIONS = Object.freeze(
+  Object.fromEntries(
+    Object.entries(REGION_CONFIGS).map(([key, config]) => [key, config.id])
+  )
+) as Record<keyof typeof REGION_CONFIGS, string>;
+
+// 地区类型定义
 export type Region = typeof REGIONS[keyof typeof REGIONS];
 
-export const REGION_NAMES_CN: Record<Region, string> = {
-  [REGIONS.EAST_ASIA]: '东亚',
-  [REGIONS.CENTRAL_ASIA]: '中亚',
-  [REGIONS.SOUTH_ASIA]: '南亚',
-  [REGIONS.MIDDLE_EAST]: '中东',
-  [REGIONS.EUROPE]: '欧洲',
-  [REGIONS.NORTH_AMERICA]: '北美',
-  [REGIONS.SOUTH_AMERICA]: '南美',
-  [REGIONS.AFRICA]: '非洲',
-  [REGIONS.OCEANIA]: '大洋洲',
-};
+// 从REGION_CONFIGS派生REGION_NAMES_CN（内部使用，不导出）
+const REGION_NAMES_CN: Record<Region, string> = Object.fromEntries(
+  Object.entries(REGION_CONFIGS).map(([_, config]) => [config.id, config.nameCN])
+) as Record<Region, string>;
 
-export const REGION_MUSIC_FILES: Record<Region, string> = {
-  [REGIONS.EAST_ASIA]: 'audio/east_asia_bgm.mp3',
-  [REGIONS.CENTRAL_ASIA]: 'audio/central_asia_bgm.mp3',
-  [REGIONS.SOUTH_ASIA]: 'audio/south_asia_bgm.mp3',
-  [REGIONS.MIDDLE_EAST]: 'audio/middle_east_bgm.mp3',
-  [REGIONS.EUROPE]: 'audio/europe_bgm.mp3',
-  [REGIONS.NORTH_AMERICA]: 'audio/north_america_bgm.mp3',
-  [REGIONS.SOUTH_AMERICA]: 'audio/south_america_bgm.mp3',
-  [REGIONS.AFRICA]: 'audio/africa_bgm.mp3',
-  [REGIONS.OCEANIA]: 'audio/oceania_bgm.mp3',
-};
+// 从REGION_CONFIGS派生REGION_MUSIC_FILES（内部使用，不导出）
+const REGION_MUSIC_FILES: Record<Region, string> = Object.fromEntries(
+  Object.entries(REGION_CONFIGS).map(([_, config]) => [config.id, config.musicFile])
+) as Record<Region, string>;
 
 /**
  * 国家到地区的映射
- * 基于地理位置和文化的合理分类
+ * 从gameConfig动态生成，确保数据一致性
  */
-export const COUNTRY_REGION_MAP: Record<string, Region> = {
-  // 东亚
-  'China': REGIONS.EAST_ASIA,
-  'Japan': REGIONS.EAST_ASIA,
-  'North Korea': REGIONS.EAST_ASIA,
-  'South Korea': REGIONS.EAST_ASIA,
-  
-  // 中亚
-  'Kazakhstan': REGIONS.CENTRAL_ASIA,
-  'Uzbekistan': REGIONS.CENTRAL_ASIA,
-  
-  // 南亚
-  'Afghanistan': REGIONS.SOUTH_ASIA,
-  'Bangladesh': REGIONS.SOUTH_ASIA,
-  'India': REGIONS.SOUTH_ASIA,
-  'Nepal': REGIONS.SOUTH_ASIA,
-  'Pakistan': REGIONS.SOUTH_ASIA,
-  'Sri Lanka': REGIONS.SOUTH_ASIA,
-  
-  // 中东
-  'Iran': REGIONS.MIDDLE_EAST,
-  'Iraq': REGIONS.MIDDLE_EAST,
-  'Jordan': REGIONS.MIDDLE_EAST,
-  'Saudi Arabia': REGIONS.MIDDLE_EAST,
-  'Syria': REGIONS.MIDDLE_EAST,
-  'Turkey': REGIONS.MIDDLE_EAST,
-  'Yemen': REGIONS.MIDDLE_EAST,
-  
-  // 欧洲
-  'France': REGIONS.EUROPE,
-  'Germany': REGIONS.EUROPE,
-  'Italy': REGIONS.EUROPE,
-  'Poland': REGIONS.EUROPE,
-  'Russia': REGIONS.EUROPE,
-  'Spain': REGIONS.EUROPE,
-  'Ukraine': REGIONS.EUROPE,
-  'United Kingdom': REGIONS.EUROPE,
-  
-  // 北美
-  'Canada': REGIONS.NORTH_AMERICA,
-  'United States': REGIONS.NORTH_AMERICA,
-  'Mexico': REGIONS.NORTH_AMERICA,
-  
-  // 南美
-  'Venezuela': REGIONS.SOUTH_AMERICA,
-  'Brazil': REGIONS.SOUTH_AMERICA,
-  'Argentina': REGIONS.SOUTH_AMERICA,
-  'Chile': REGIONS.SOUTH_AMERICA,
-  'Colombia': REGIONS.SOUTH_AMERICA,
-  'Ecuador': REGIONS.SOUTH_AMERICA,
-  'Peru': REGIONS.SOUTH_AMERICA,
-  'Bolivia': REGIONS.SOUTH_AMERICA,
-  'Guatemala': REGIONS.SOUTH_AMERICA,
-  
-  // 非洲
-  'Tanzania': REGIONS.AFRICA,
-  'Ethiopia': REGIONS.AFRICA,
-  'Kenya': REGIONS.AFRICA,
-  'Mozambique': REGIONS.AFRICA,
-  'Madagascar': REGIONS.AFRICA,
-  'Rwanda': REGIONS.AFRICA,
-  'Burundi': REGIONS.AFRICA,
-  'Chad': REGIONS.AFRICA,
-  'Mali': REGIONS.AFRICA,
-  'Burkina Faso': REGIONS.AFRICA,
-  'Niger': REGIONS.AFRICA,
-  'Benin': REGIONS.AFRICA,
-  'Togo': REGIONS.AFRICA,
-  'Sierra Leone': REGIONS.AFRICA,
-  'Ghana': REGIONS.AFRICA,
-  'Guinea': REGIONS.AFRICA,
-  'Nigeria': REGIONS.AFRICA,
-  'Côte d\'Ivoire': REGIONS.AFRICA,
-  'Senegal': REGIONS.AFRICA,
-  'Somalia': REGIONS.AFRICA,
-  'South Sudan': REGIONS.AFRICA,
-  'Zambia': REGIONS.AFRICA,
-  'Malawi': REGIONS.AFRICA,
-  'Zimbabwe': REGIONS.AFRICA,
-  'Angola': REGIONS.AFRICA,
-  'Algeria': REGIONS.AFRICA,
-  'Morocco': REGIONS.AFRICA,
-  'Egypt': REGIONS.AFRICA,
-  'Sudan': REGIONS.AFRICA,
-  'South Africa': REGIONS.AFRICA,
-  
-  // 大洋洲
-  'Australia': REGIONS.OCEANIA,
-  'Papua New Guinea': REGIONS.OCEANIA,
-  'Malaysia': REGIONS.OCEANIA,
-};
+export const COUNTRY_REGION_MAP: Record<string, Region> = Object.fromEntries(
+  Object.entries(GAME_CONFIG.GAME_DATA.countries)
+    .filter(([key, value]) => 
+      typeof value === 'object' && 
+      value !== null && 
+      'region' in value && 
+      typeof value.region === 'string'
+    )
+    .map(([countryName, countryData]) => [countryName, countryData.region as Region])
+);
 
 /**
- * 获取国家所属地区
+ * 地区管理器类
+ * 封装所有地区相关的操作方法
  */
-export function getCountryRegion(countryName: string): Region | null {
-  return COUNTRY_REGION_MAP[countryName] || null;
-}
+export class RegionManager {
+  /**
+   * 获取国家所属地区
+   */
+  getCountryRegion(countryName: string): Region | null {
+    return COUNTRY_REGION_MAP[countryName] || null;
+  }
 
-/**
- * 获取地区名称
- */
-export function getRegionName(region: Region): string {
-  return REGION_NAMES_CN[region];
-}
+  /**
+   * 获取地区名称
+   */
+  getRegionName(region: Region): string {
+    return REGION_NAMES_CN[region];
+  }
 
-/**
- * 获取地区音乐文件路径
- */
-export function getRegionMusicPath(region: Region): string {
-  return REGION_MUSIC_FILES[region];
-}
+  /**
+   * 获取地区音乐文件路径
+   */
+  getRegionMusicPath(region: Region): string {
+    return REGION_MUSIC_FILES[region];
+  }
 
-/**
- * 获取地区描述（用于音频生成）
- */
-export function getRegionDescription(region: Region): string {
-  switch (region) {
-    case REGIONS.EAST_ASIA:
-      return '东亚地区，包括中国、日本、韩国等具有深厚历史文化底蕴的国家，音乐风格体现古代宫廷音乐和现代都市元素的融合';
-    case REGIONS.CENTRAL_ASIA:
-      return '中亚地区，包括哈萨克斯坦、乌兹别克斯坦等国家，音乐风格融合丝绸之路的古代商队文化和游牧民族的传统音乐';
-    case REGIONS.SOUTH_ASIA:
-      return '南亚地区，包括印度、巴基斯坦、孟加拉国等香料之国，音乐风格丰富多样，融合古典印度音乐和宗教音乐元素';
-    case REGIONS.MIDDLE_EAST:
-      return '中东地区，包括伊朗、土耳其、沙特阿拉伯等古代文明发源地，音乐风格展现沙漠风光、古代文明和宗教文化的宏伟';
-    case REGIONS.EUROPE:
-      return '欧洲地区，包括法国、德国、英国等古典音乐发源地，音乐风格融合古典音乐传统和现代音乐的精致优雅';
-    case REGIONS.NORTH_AMERICA:
-      return '北美地区，包括美国、加拿大、墨西哥等国，音乐风格融合爵士乐、蓝调音乐和现代流行音乐的多元创新';
-    case REGIONS.SOUTH_AMERICA:
-      return '南美地区，包括巴西、阿根廷、秘鲁等热情大陆，音乐风格融合桑巴、探戈等拉丁音乐和土著音乐的活力';
-    case REGIONS.AFRICA:
-      return '非洲地区，包括尼日利亚、埃塞俄比亚、南非等充满活力的土地，音乐风格融合传统部落音乐和现代非洲音乐的力量感';
-    case REGIONS.OCEANIA:
-      return '大洋洲地区，包括澳大利亚、巴布亚新几内亚等国，音乐风格展现广袤海岸、草原风光和土著文化的神秘感';
-    default:
-      return '未知地区';
+  /**
+   * 根据地区ID获取完整的地区配置
+   */
+  getRegionConfig(regionId: Region): RegionConfig {
+    // 查找匹配的配置
+    const config = Object.values(REGION_CONFIGS).find(config => config.id === regionId);
+    if (!config) {
+      throw new Error(`未知地区: ${regionId}`);
+    }
+    return config;
   }
 }
+
+// 创建单例实例
+export const regionManager = new RegionManager();

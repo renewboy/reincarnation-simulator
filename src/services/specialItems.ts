@@ -20,7 +20,7 @@ export async function generateCountrySpecialItem(country: string): Promise<Item>
   if (currentModelId.startsWith('fake-')) {
     return generateFallbackSpecialItem(country);
   }
-  const systemPrompt = `你是一个游戏道具设计师。根据国家的文化特色、历史背景和代表性元素，设计一个独特的稀有道具。
+  const systemPrompt = `你是一个专业的游戏道具设计师。根据国家的文化特色、历史背景和代表性元素，设计一个独特的稀有道具。
 
 道具设计要求：
 1. 道具名称要体现国家特色，富有文化内涵
@@ -28,7 +28,8 @@ export async function generateCountrySpecialItem(country: string): Promise<Item>
 3. 道具图标使用一个合适的emoji（与国家文化相关）
 4. 道具效果要平衡且有特色：
    - 属性加成范围：单个属性15-30，或多个属性总和30-50
-   - 可以包含寿命加成（5-15年）
+   - 可以包含寿命加成（5-20年）
+   - 可以包含MBTI人格类型改变，需符合逻辑（使用ie, sn, tf, jp四个维度，每个维度[-0.3,0.3]范围）
    - 效果要符合国家特色
 5. 价格范围：150-400金币（稀有道具）
 6. 类型：consumable（消耗品）
@@ -45,7 +46,11 @@ export async function generateCountrySpecialItem(country: string): Promise<Item>
   "wealth": 0,
   "charisma": 0,
   "creativity": 0,
-  "lifespan": 0
+  "lifespan": 0,
+  "ie": 0,
+  "sn": 0,
+  "tf": 0,
+  "jp": 0,
 }`;
 
   const userPrompt = `为${getCountryNameCN(country)}设计一个独特的专属稀有道具。
@@ -54,7 +59,7 @@ export async function generateCountrySpecialItem(country: string): Promise<Item>
 - 名称和描述要体现${getCountryNameCN(country)}的文化特色
 - 图标使用合适的emoji
 - 效果要平衡且独特
-- 价格150-400金币
+- 价格250-400金币
 
 请生成这个道具的完整信息。`;
 
@@ -74,6 +79,9 @@ export async function generateCountrySpecialItem(country: string): Promise<Item>
         stream: false,
         max_tokens: 500,
         temperature: 0.9,
+        thinking: {
+          type: 'disabled'
+        }
       }),
     });
 
@@ -113,6 +121,12 @@ export async function generateCountrySpecialItem(country: string): Promise<Item>
           creativity: itemData.creativity || 0,
         },
         lifespan: itemData.lifespan || 0,
+        personality: {
+          ie: itemData.ie || 0,
+          sn: itemData.sn || 0,
+          tf: itemData.tf || 0,
+          jp: itemData.jp || 0,
+        },
       },
       type: 'consumable',
     };

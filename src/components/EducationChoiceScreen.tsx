@@ -510,6 +510,7 @@ export default function EducationChoiceScreen({
       return (
         <MajorSelection
           currentCountry={gameState.currentCountry}
+          currentAge={gameState.currentAge}
           attributes={gameState.attributes}
           personality={gameState.personality}
           majorOptions={majorOptions}

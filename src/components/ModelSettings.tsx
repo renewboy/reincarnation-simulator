@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Settings, Check, X } from 'lucide-react';
+import { GAME_CONFIG } from '@/config/gameConfig';
 
 interface ModelSettingsProps {
   isOpen: boolean;
@@ -8,27 +9,6 @@ interface ModelSettingsProps {
   currentModel: string;
 }
 
-// 模拟模型列表
-const AVAILABLE_MODELS = [
-  {
-    id: 'doubao-seed-1-6-flash-250828',
-    name: '豆包-seed-1.6-flash (最新版)',
-    description: '最新flash模型，响应速度快，适合正式体验',
-    type: 'production'
-  },
-  {
-    id: 'fake-rapid',
-    name: 'Fake模型-快速版 (调试用)',
-    description: '快速返回预设答案，仅用于调试和测试UI流程',
-    type: 'debug'
-  },
-  {
-    id: 'fake-basic',
-    name: 'Fake模型-基础版 (调试用)',
-    description: '返回基础答案，模拟真实模型返回格式',
-    type: 'debug'
-  }
-];
 
 export default function ModelSettings({ isOpen, onClose, onModelChange, currentModel }: ModelSettingsProps) {
   const [selectedModel, setSelectedModel] = useState(currentModel);
@@ -83,7 +63,7 @@ export default function ModelSettings({ isOpen, onClose, onModelChange, currentM
 
         {/* 模型列表 */}
         <div className="space-y-3 mb-6">
-          {AVAILABLE_MODELS.map((model) => (
+          {GAME_CONFIG.LLM.AVAILABLE_MODELS.map((model) => (
             <div
               key={model.id}
               className={`

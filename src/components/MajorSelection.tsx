@@ -5,6 +5,7 @@ import { getCountryNameCN } from '../utils/countryNames';
 
 interface MajorSelectionProps {
   currentCountry: string;
+  currentAge: number;
   attributes: CharacterAttributes;
   personality: MBTIPersonality;
   majorOptions: string[];
@@ -46,6 +47,7 @@ function getMBTIType(personality: MBTIPersonality): string {
 
 export default function MajorSelection({
   currentCountry,
+  currentAge,
   attributes,
   personality,
   majorOptions,
@@ -92,7 +94,7 @@ export default function MajorSelection({
             <h3 className="text-white font-semibold mb-2">基本信息</h3>
             <div className="text-sm text-gray-300 space-y-1">
               <div>国家：{getCountryNameCN(currentCountry)}</div>
-              <div>年龄：18岁</div>
+              <div>年龄：{currentAge}岁</div>
               <div>MBTI：{getMBTIType(personality)}</div>
             </div>
           </div>

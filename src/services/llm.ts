@@ -206,7 +206,7 @@ ${previousEvents.length > 0 ? `最近经历：\n${previousEvents.slice(-3).join(
 4. 4个选项要有不同的策略价值，至少包含2种影响方向（正/负/中性）
 5. 每个选项只影响1-2个核心属性，避免全属性变化
 6. 金币变化范围-50到+50，性格变化0-2个维度
-
+7. 事件不得与先前事件雷同
 生成一个生动具体的事件，让玩家有真实的代入感。`;
 
   try {
@@ -224,7 +224,12 @@ ${previousEvents.length > 0 ? `最近经历：\n${previousEvents.slice(-3).join(
         ],
         stream: false,
         max_tokens: 800,
-        temperature: 0.8,
+        temperature: 0.9,
+        presence_penalty: 0.8,
+        frequency_penalty: 0.8,
+        thinking:{
+          type:'disabled'
+        }
       }),
     });
 
@@ -483,6 +488,9 @@ JSON格式：
         stream: false,
         max_tokens: 500,
         temperature: 0.8,
+        thinking: {
+          type: 'disabled'
+        }
       }),
     });
 

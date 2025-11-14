@@ -13,11 +13,12 @@ export interface CountryData {
   };
   health_benchmark: number;
   advantage_score: number;
-  tags: string[];
+  tags: readonly string[];
   special_conditions: {
     rare_birth_chance: number;
     elite_class_chance: number;
   };
+  chineseName: string;
 }
 
 export interface GameConfig {
