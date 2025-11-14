@@ -6,6 +6,18 @@ interface CountryWordCloudProps {
   config: GameConfig;
 }
 
+interface Star {
+  text: string;
+  x: number;
+  y: number;
+  radius: number;
+  brightness: number;
+  color: string;
+  probability: number;
+  name: string;
+  twinkleSpeed: number;
+}
+
 export default function CountryWordCloud({ config }: CountryWordCloudProps) {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [starField, setStarField] = useState<Array<{ id: number; x: number; y: number; size: number; opacity: number }>>([]);

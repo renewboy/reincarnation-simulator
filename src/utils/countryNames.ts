@@ -82,6 +82,11 @@ export const COUNTRY_NAMES_CN: Record<string, string> = {
   'Zimbabwe': '津巴布韦',
 };
 
+// 80个国家的英文名称列表
+export const COUNTRY_NAMES_EN: Record<string, string> = Object.fromEntries(
+  Object.entries(COUNTRY_NAMES_CN).map(([en, cn]) => [cn, en])
+);
+
 // 获取国家中文名称，如果没有映射则返回英文名称
 export function getCountryNameCN(englishName: string): string {
   return COUNTRY_NAMES_CN[englishName] || englishName;
