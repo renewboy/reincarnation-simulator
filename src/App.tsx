@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameState } from './hooks/useGameState';
 import StartScreen from './components/StartScreen';
 import GameScreen from './components/GameScreen';
 import EndScreen from './components/EndScreen';
 import EducationChoiceScreen from './components/EducationChoiceScreen';
 import ModelSettings from './components/ModelSettings';
+import AudioSettings from './components/AudioSettings';
 import { GAME_CONFIG } from './config/gameConfig';
+import { initAudioService, audioService } from './services/audioService';
+import { getCountryRegion } from './utils/regions';
 
 function App() {
   const {
@@ -25,7 +28,23 @@ function App() {
   } = useGameState();
 
   const [showModelSettings, setShowModelSettings] = useState(false);
+  const [showAudioSettings, setShowAudioSettings] = useState(false);
   const [currentModel, setCurrentModelLocal] = useState<string>(GAME_CONFIG.LLM.MODEL);
+
+  // 初始化音频服务
+  useEffect(() => {
+    initAudioService();
+  }, []);
+
+  // 监听游戏状态变化，自动播放对应地区音乐
+  useEffect(() => {
+    if (gameState.currentCountry && audioService.isEnabled()) {
+      const region = getCountryRegion(gameState.currentCountry);
+      if (region) {
+        audioService.playRegionMusic(region);
+      }
+    }
+  }, [gameState.currentCountry]);
 
   const handleOpenSettings = () => {
     setShowModelSettings(true);
@@ -33,6 +52,14 @@ function App() {
 
   const handleCloseSettings = () => {
     setShowModelSettings(false);
+  };
+
+  const handleOpenAudioSettings = () => {
+    setShowAudioSettings(true);
+  };
+
+  const handleCloseAudioSettings = () => {
+    setShowAudioSettings(false);
   };
 
   const handleModelChange = (modelId: string) => {
@@ -58,6 +85,7 @@ function App() {
           gameState={gameState}
           onStart={startReincarnation}
           onOpenSettings={handleOpenSettings}
+          onOpenAudioSettings={handleOpenAudioSettings}
         />
       )}
       
@@ -97,6 +125,14 @@ function App() {
           onClose={handleCloseSettings}
           onModelChange={handleModelChange}
           currentModel={currentModel}
+        />
+      )}
+
+      {/* 音频设置弹窗 */}
+      {showAudioSettings && (
+        <AudioSettings
+          isOpen={showAudioSettings}
+          onClose={handleCloseAudioSettings}
         />
       )}
     </div>

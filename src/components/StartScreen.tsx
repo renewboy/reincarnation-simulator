@@ -7,21 +7,33 @@ interface StartScreenProps {
   gameState: GameState;
   onStart: () => void;
   onOpenSettings: () => void;
+  onOpenAudioSettings: () => void;
 }
 
-export default function StartScreen({ config, gameState, onStart, onOpenSettings }: StartScreenProps) {
+export default function StartScreen({ config, gameState, onStart, onOpenSettings, onOpenAudioSettings }: StartScreenProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
       <div className="max-w-4xl w-full space-y-8">
         {/* 设置按钮 */}
         <div className="fixed top-6 right-6">
-          <button
-            onClick={onOpenSettings}
-            className="p-3 backdrop-blur-glass bg-glass-bg border border-glass-border rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 shadow-lg"
-            title="模型设置"
-          >
-            <Settings className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* 音频设置按钮 */}
+            <button
+              onClick={onOpenAudioSettings}
+              className="p-3 backdrop-blur-glass bg-glass-bg border border-glass-border rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 shadow-lg"
+              title="音频设置"
+            >
+              🎵
+            </button>
+            {/* 模型设置按钮 */}
+            <button
+              onClick={onOpenSettings}
+              className="p-3 backdrop-blur-glass bg-glass-bg border border-glass-border rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 shadow-lg"
+              title="模型设置"
+            >
+              <Settings className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* 标题 */}
