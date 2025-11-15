@@ -39,6 +39,7 @@ export const GAME_CONFIG = {
     DEFAULT_MAX_AGE: 80,
     BASE_INHERITANCE_RATE: 0.5,
     REINCARNATION_MEDAL_RATE: 0.75,
+    CUSTOM_REINCARNATE_GOLD_COST: 300,
   },
 
   // 从game_config.json转换的游戏配置

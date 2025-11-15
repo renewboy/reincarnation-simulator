@@ -4,6 +4,8 @@ import { getCountryNameCN } from '../utils/countryNames';
 
 interface CountryWordCloudProps {
   config: GameConfig;
+  onCountrySelect?: (countryEN: string) => void;
+  selectedCountry?: string;
 }
 
 interface Star {
@@ -18,7 +20,7 @@ interface Star {
   twinkleSpeed: number;
 }
 
-export default function CountryWordCloud({ config }: CountryWordCloudProps) {
+export default function CountryWordCloud({ config, onCountrySelect, selectedCountry }: CountryWordCloudProps) {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [starField, setStarField] = useState<Array<{ id: number; x: number; y: number; size: number; opacity: number }>>([]);
   const [countries, setCountries] = useState<Array<{ name: string; probability: number; rank: number }>>([]);
@@ -162,6 +164,7 @@ export default function CountryWordCloud({ config }: CountryWordCloudProps) {
           {countries.map(({ name, probability, rank }, index) => {
             const fontSize = getFontSize(probability);
             const isHovered = hoveredCountry === name;
+            const isSelected = selectedCountry === name;
             const color = getColor(index); // 使用随机排列中的索引，而不是原始rank
             const glowEffect = getGlowEffect(index); // 使用随机排列中的索引，而不是原始rank
 
@@ -173,6 +176,7 @@ export default function CountryWordCloud({ config }: CountryWordCloudProps) {
                 }`}
                 onMouseEnter={() => setHoveredCountry(name)}
                 onMouseLeave={() => setHoveredCountry(null)}
+                onClick={() => onCountrySelect?.(name)}
               >
                 
                 <span
@@ -182,17 +186,21 @@ export default function CountryWordCloud({ config }: CountryWordCloudProps) {
                     tracking-wide
                     transition-all duration-500
                     transform hover:scale-125 hover:rotate-12
-                    ${color}
-                    ${isHovered ? `opacity-100 ${glowEffect}` : 'opacity-90'}
-                    ${isHovered ? 'drop-shadow-[0_0_10px_currentColor]' : 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]'}
+                    ${isSelected ? 'text-yellow-300 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]' : color}
+                    ${isSelected ? 'animate-pulse' : ''}
+                    ${isHovered || isSelected ? `opacity-100 ${glowEffect}` : 'opacity-90'}
+                    ${isHovered || isSelected ? 'drop-shadow-[0_0_10px_currentColor]' : 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]'}
                   `}
                   style={{ 
                     fontSize: `${fontSize}rem`,
-                    textShadow: isHovered ? '0 0 20px currentColor' : 'none',
-                    filter: isHovered ? 'brightness(1.3)' : 'brightness(1)',
+                    textShadow: isHovered || isSelected ? '0 0 20px currentColor' : 'none',
+                    filter: isHovered || isSelected ? 'brightness(1.3)' : 'brightness(1)',
                   }}
                 >
                   {getCountryNameCN(name)}
+                  {isSelected && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-bounce" />
+                  )}
                 </span>
 
                 {/* 国家信息悬浮窗 */}
@@ -208,6 +216,11 @@ export default function CountryWordCloud({ config }: CountryWordCloudProps) {
                       <div className="text-purple-400 text-xs">
                         排名: {rank}
                       </div>
+                      {isSelected && (
+                        <div className="text-yellow-400 text-xs font-bold">
+                          ✨ 已选择
+                        </div>
+                      )}
                     </div>
                     {/* 向上箭头指示器 */}
                     <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-slate-900/70" />
@@ -241,7 +254,7 @@ export default function CountryWordCloud({ config }: CountryWordCloudProps) {
             <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent" />
           </div>
           <h3 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent tracking-wider">
-            每一次投胎都是宇宙中的一次神秘重生，你的灵魂即将踏上全新的旅程
+            每次投胎都是宇宙中的一次神秘重生，你的灵魂即将踏上全新的旅程
           </h3>
           <p className="text-sm text-gray-300/90 leading-relaxed max-w-2xl mx-auto italic font-light tracking-wide">
             选择一个国家，让命运为你编织属于这个时代的传奇故事...

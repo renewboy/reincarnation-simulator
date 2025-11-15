@@ -1,16 +1,35 @@
+import { useState } from 'react';
 import type { GameConfig, GameState } from '../types/game';
-import { Coins, Sparkles, Settings } from 'lucide-react';
+import { Coins, Sparkles, Settings, Star, Target } from 'lucide-react';
 import CountryWordCloud from './CountryWordCloud';
+import { getCountryNameCN } from '../utils/countryNames';
+import { GAME_CONFIG } from '@/config/gameConfig';
 
 interface StartScreenProps {
   config: GameConfig;
   gameState: GameState;
-  onStart: () => void;
+  onStart: (selectedCountry?: string) => void;
   onOpenSettings: () => void;
   onOpenAudioSettings: () => void;
 }
 
 export default function StartScreen({ config, gameState, onStart, onOpenSettings, onOpenAudioSettings }: StartScreenProps) {
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  
+  const handleCountrySelect = (countryEN: string) => {
+    setSelectedCountry(selectedCountry === countryEN ? null : countryEN);
+  };
+
+  const handleCustomReincarnation = () => {
+    console.log('selectedCountry:', selectedCountry);
+    if (selectedCountry) {
+      onStart(selectedCountry);
+    }
+  };
+
+  const customReincarnateGoldCost = GAME_CONFIG.GAME.CUSTOM_REINCARNATE_GOLD_COST;
+  const canCustomReincarnate = selectedCountry && gameState.gold >= customReincarnateGoldCost;
+  const selectedCountryCN = selectedCountry ? getCountryNameCN(selectedCountry) : '';
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
       <div className="max-w-4xl w-full space-y-8">
@@ -70,22 +89,60 @@ export default function StartScreen({ config, gameState, onStart, onOpenSettings
           </div>
         </div>
 
-        {/* 开始投胎按钮 */}
-        <div className="text-center">
-          <button
-            onClick={onStart}
-            className="px-12 py-4 bg-gradient-primary-btn text-white text-xl font-bold rounded-full hover:scale-105 transition-transform shadow-lg animate-pulse-glow"
-          >
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6" />
-              <span>开始投胎</span>
-              <Sparkles className="w-6 h-6" />
+        {/* 开始投胎按钮区域 */}
+        <div className="flex flex-col items-center gap-4">
+          {/* 随机投胎按钮 */}
+          <div className="text-center">
+            <button
+              onClick={() => onStart()}
+              className="px-12 py-4 bg-gradient-primary-btn text-white text-xl font-bold rounded-full hover:scale-105 transition-transform shadow-lg animate-pulse-glow"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6" />
+                <span>随机投胎</span>
+                <Sparkles className="w-6 h-6" />
+              </div>
+            </button>
+          </div>
+
+          {/* 自定义投胎按钮 */}
+          {selectedCountry && (
+            <div className="text-center space-y-2">
+              <div className="text-sm text-cyan-300">
+                已选择：<span className="text-yellow-300 font-bold">{selectedCountryCN}</span>
+              </div>
+              <button
+                onClick={handleCustomReincarnation}
+                disabled={!canCustomReincarnate}
+                className={`px-8 py-3 text-lg font-bold rounded-full transition-all duration-300 ${
+                  canCustomReincarnate
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:scale-105 shadow-lg animate-pulse hover:shadow-purple-500/50'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }`}
+                title={!selectedCountry ? '请先选择一个国家' : gameState.gold < customReincarnateGoldCost ? `需要${customReincarnateGoldCost}金币，当前只有${gameState.gold}金币` : '自定义投胎到指定国家'}
+              >
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  <span>命运抉择</span>
+                  <Coins className="w-5 h-5 text-yellow-400" />
+                  <span>{customReincarnateGoldCost}</span>
+                </div>
+              </button>
+              {selectedCountry && !canCustomReincarnate && (
+                <div className="text-xs text-red-400">
+                  {gameState.gold < customReincarnateGoldCost ? `金币不足，需要${customReincarnateGoldCost}金币` : ''}
+                </div>
+              )}
             </div>
-          </button>
+          )}
         </div>
 
         {/* 全球投胎概率分布（云词图）*/}
-        <CountryWordCloud config={config} />
+        <CountryWordCloud 
+          config={config} 
+          onCountrySelect={handleCountrySelect}
+          selectedCountry={selectedCountry || undefined}
+        />
       </div>
     </div>
   );

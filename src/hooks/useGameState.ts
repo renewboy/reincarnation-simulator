@@ -120,10 +120,9 @@ export function useGameState() {
   }, []);
 
   // 开始投胎
-  const startReincarnation = useCallback(() => {
+  const startReincarnation = useCallback((selectedCountry?: string) => {
     if (!config) return;
-    
-    let country = selectRandomCountry(config);
+    let country = selectedCountry || selectRandomCountry(config);
     const countryData = config.countries[country];
     country = getCountryNameCN(country);
     const age = 0;
@@ -145,17 +144,20 @@ export function useGameState() {
       lifeHistory: [],
       currentEvent: null,
       gamePhase: 'playing',
+      gold: selectedCountry ? gameState.gold - GAME_CONFIG.GAME.CUSTOM_REINCARNATE_GOLD_COST : gameState.gold, // 自定义投胎消耗400金币
     }));
     
     // 立即生成第一个事件
-    setTimeout(() => generateNextEvent(country, age, initializeAttributes(countryData), initializePersonality(), []), 500);
+    setTimeout(() => generateNextEvent(country, age, gameState.gold, initializeAttributes(countryData), initializePersonality(), []), 500);
   }, [config]);
+
 
   // 生成下一个事件
   const generateNextEvent = useCallback(
     async (
       country: string,
       age: number,
+      gold: number,
       attributes: CharacterAttributes,
       personality: MBTIPersonality,
       history: LifeEvent[]
@@ -163,7 +165,7 @@ export function useGameState() {
       setIsGeneratingEvent(true);
       try {
         const historyMessages = history.map(e => e.messages).flat();
-        const event = await generateLifeEvent(age, country, attributes, personality, historyMessages);
+        const event = await generateLifeEvent(age, country, gold, attributes, personality, historyMessages);
         setGameState((prev) => ({
           ...prev,
           currentEvent: event,
@@ -334,7 +336,7 @@ export function useGameState() {
         }
         
         setTimeout(
-            () => generateNextEvent(prev.currentCountry, newAge, newAttributes, newPersonality, newHistory),
+            () => generateNextEvent(prev.currentCountry, newAge, newGold, newAttributes, newPersonality, newHistory),
             500
         );
         
@@ -489,7 +491,7 @@ export function useGameState() {
             gamePhase: 'education-choice' as const,
           }));
         } else {
-          generateNextEvent(prev.currentCountry, newAge, prev.attributes, prev.personality, prev.lifeHistory);
+          generateNextEvent(prev.currentCountry, newAge, prev.gold, prev.attributes, prev.personality, prev.lifeHistory);
         }
        
       }, 100);
@@ -537,7 +539,7 @@ export function useGameState() {
               gamePhase: 'education-choice' as const,
             }));
           } else {
-            generateNextEvent(prev.currentCountry, newAge, prev.attributes, prev.personality, prev.lifeHistory);
+            generateNextEvent(prev.currentCountry, newAge, prev.gold, prev.attributes, prev.personality, prev.lifeHistory);
           }
         
         }, 100);
@@ -579,7 +581,7 @@ export function useGameState() {
               }));
             }
           } else {
-            generateNextEvent(prev.currentCountry, newAge, prev.attributes, prev.personality, prev.lifeHistory);
+            generateNextEvent(prev.currentCountry, newAge, prev.gold, prev.attributes, prev.personality, prev.lifeHistory);
           }
         }, 100);  
         
@@ -611,7 +613,7 @@ export function useGameState() {
         
         // 职业选择完成后立即生成下一个人生事件
         setTimeout(() => {
-          generateNextEvent(prev.currentCountry, baseAge, prev.attributes, prev.personality, prev.lifeHistory);
+          generateNextEvent(prev.currentCountry, baseAge, prev.gold, prev.attributes, prev.personality, prev.lifeHistory);
         }, 500);
       }
 

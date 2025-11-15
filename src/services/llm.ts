@@ -64,6 +64,7 @@ function getAttributesDescription(attributes: CharacterAttributes): string {
 export async function generateLifeEvent(
   age: number,
   country: string,
+  gold: number,
   attributes: CharacterAttributes,
   personality: MBTIPersonality,
   messages: Message[] = [],
@@ -189,13 +190,14 @@ JSON格式要求：
 - 年龄：${age}岁
 - 国家：${country}
 - 当前属性状况：
-  * 健康：${attributes.health}/100 ${attributes.health > 70 ? '(优秀)' : attributes.health < 30 ? '(较差，容易生病)' : '(一般)'}
-  * 智力：${attributes.intelligence}/100 ${attributes.intelligence > 70 ? '(聪慧，学习能力强)' : attributes.intelligence < 30 ? '(欠佳，学习困难)' : '(普通)'}
-  * 情绪：${attributes.emotion}/100 ${attributes.emotion > 70 ? '(愉悦，心态积极)' : attributes.emotion < 30 ? '(低落，压力大)' : '(平稳)'}
-  * 财富：${attributes.wealth}/100 ${attributes.wealth > 70 ? '(富裕，经济宽裕)' : attributes.wealth < 30 ? '(贫困，经济紧张)' : '(中等)'}
-  * 魅力：${attributes.charisma}/100 ${attributes.charisma > 70 ? '(出众，受欢迎)' : attributes.charisma < 30 ? '(欠缺，社交困难)' : '(平常)'}
-  * 创造力：${attributes.creativity}/100 ${attributes.creativity > 70 ? '(杰出，富有想象力)' : attributes.creativity < 30 ? '(有限，缺乏创新)' : '(普通)'}
-- MBTI性格：${getMBTIDescription(personality)}
+  * health: ${attributes.health}/100 ${attributes.health > 70 ? '(优秀)' : attributes.health < 30 ? '(较差，容易生病)' : '(一般)'}
+  * intelligence: ${attributes.intelligence}/100 ${attributes.intelligence > 70 ? '(聪慧，学习能力强)' : attributes.intelligence < 30 ? '(欠佳，学习困难)' : '(普通)'}
+  * emotion: ${attributes.emotion}/100 ${attributes.emotion > 70 ? '(愉悦，心态积极)' : attributes.emotion < 30 ? '(低落，压力大)' : '(平稳)'}
+  * wealth: ${attributes.wealth}/100 ${attributes.wealth > 70 ? '(富裕，经济宽裕)' : attributes.wealth < 30 ? '(贫困，经济紧张)' : '(中等)'}
+  * charisma: ${attributes.charisma}/100 ${attributes.charisma > 70 ? '(出众，受欢迎)' : attributes.charisma < 30 ? '(欠缺，社交困难)' : '(平常)'}
+  * creativity: ${attributes.creativity}/100 ${attributes.creativity > 70 ? '(杰出，富有想象力)' : attributes.creativity < 30 ? '(有限，缺乏创新)' : '(普通)'}
+- MBTI性格: ${getMBTIDescription(personality)}
+- 当前金币：${gold}
 
 ${messages.length > 0 ? '' : '这是人生的开始，还没有经历其他事件\n'}
 请基于以上信息生成一个真实的人生事件：
@@ -394,6 +396,9 @@ JSON格式：
         stream: false,
         max_tokens: 500,
         temperature: 0.8,
+        thinking:{
+          type: 'disabled'
+        }
       }),
     });
 

@@ -172,3 +172,8 @@ export async function getCountrySpecialItem(country: string): Promise<Item> {
   specialItemsCache[country] = item;
   return item;
 }
+
+// 清除特定国家的专属道具缓存
+export function clearCountrySpecialItemCache(country: string): void {
+  delete specialItemsCache[country];
+}

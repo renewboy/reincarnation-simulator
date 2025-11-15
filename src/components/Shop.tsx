@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Item } from '../types/game';
 import { SHOP_ITEMS } from '../types/game';
-import { X, ShoppingCart, Star } from 'lucide-react';
-import { getCountrySpecialItem } from '../services/specialItems';
+import { X, ShoppingCart, Star, RotateCcw } from 'lucide-react';
+import { getCountrySpecialItem, clearCountrySpecialItemCache } from '../services/specialItems';
 import { getCountryNameCN } from '../utils/countryNames';
 
 interface ShopProps {
@@ -15,22 +15,52 @@ interface ShopProps {
 export default function Shop({ gold, currentCountry, onBuyItem, onClose }: ShopProps) {
   const [specialItem, setSpecialItem] = useState<Item | null>(null);
   const [isLoadingSpecial, setIsLoadingSpecial] = useState(true);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const REGENERATION_COST = 50;
 
   // 加载国家专属道具
   useEffect(() => {
-    async function loadSpecialItem() {
-      setIsLoadingSpecial(true);
-      try {
-        const item = await getCountrySpecialItem(currentCountry);
-        setSpecialItem(item);
-      } catch (error) {
-        console.error('加载专属道具失败:', error);
-      } finally {
-        setIsLoadingSpecial(false);
-      }
-    }
     loadSpecialItem();
   }, [currentCountry]);
+
+  async function loadSpecialItem() {
+    setIsLoadingSpecial(true);
+    try {
+      const item = await getCountrySpecialItem(currentCountry);
+      setSpecialItem(item);
+    } catch (error) {
+      console.error('加载专属道具失败:', error);
+    } finally {
+      setIsLoadingSpecial(false);
+    }
+  }
+
+  // 重新生成专属道具
+  async function handleRegenerateSpecialItem() {
+    if (gold < REGENERATION_COST) return;
+    
+    setIsRegenerating(true);
+    try {
+      // 清除缓存
+      clearCountrySpecialItemCache(currentCountry);
+      // 触发购买50金币的消费
+      onBuyItem({
+        id: 'regeneration_fee',
+        name: '重新生成费用',
+        description: '重新生成国家专属道具',
+        price: REGENERATION_COST,
+        icon: '🔄',
+        effects: {},
+        type: 'consumable'
+      });
+      // 重新加载道具
+      await loadSpecialItem();
+    } catch (error) {
+      console.error('重新生成专属道具失败:', error);
+    } finally {
+      setIsRegenerating(false);
+    }
+  }
 
   const allItems = specialItem ? [specialItem, ...SHOP_ITEMS] : SHOP_ITEMS;
   return (
@@ -83,11 +113,29 @@ export default function Shop({ gold, currentCountry, onBuyItem, onClose }: ShopP
               >
                 {/* 专属标签 */}
                 {isSpecial && (
-                  <div className="flex items-center gap-1 mb-2">
-                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-xs font-bold text-yellow-400">
-                      {getCountryNameCN(currentCountry)}专属
-                    </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                      <span className="text-xs font-bold text-yellow-400">
+                        {getCountryNameCN(currentCountry)}专属
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <button
+                        onClick={handleRegenerateSpecialItem}
+                        disabled={isRegenerating || gold < REGENERATION_COST}
+                        className={`flex items-center justify-center p-1.5 rounded-full transition-all ${gold >= REGENERATION_COST && !isRegenerating
+                          ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:scale-110'
+                          : 'bg-gray-700/50 text-gray-500 cursor-not-allowed'}`}
+                        title={`重新生成专属道具 (${REGENERATION_COST}金币)`}
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </button>
+                      <span className="ml-2 text-yellow-300 text-xs">
+                        <span className="mr-0.5 align-middle">💰</span>
+                        {REGENERATION_COST}
+                      </span>
+                    </div>
                   </div>
                 )}
                 
@@ -134,14 +182,12 @@ export default function Shop({ gold, currentCountry, onBuyItem, onClose }: ShopP
                         onBuyItem(item);
                       }
                     }}
-                    disabled={!canAfford}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                      canAfford
+                    disabled={!canAfford || isRegenerating}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${canAfford && !isRegenerating
                         ? isSpecial
                           ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105'
                           : 'bg-gradient-primary-btn text-white hover:scale-105'
-                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                    }`}
+                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'}`}
                   >
                     {canAfford ? '购买' : '金币不足'}
                   </button>

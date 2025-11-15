@@ -33,12 +33,12 @@ function App() {
   const [currentModel, setCurrentModelLocal] = useState<string>(GAME_CONFIG.LLM.MODEL);
   const [showReincarnationAnimation, setShowReincarnationAnimation] = useState(false);
 
-  const handleStartReincarnation = () => {
+  const handleStartReincarnation = (selectedCountry?: string) => {
     setShowReincarnationAnimation(true);
     // 2秒后自动消失并开始游戏
     setTimeout(() => {
       setShowReincarnationAnimation(false);
-      startReincarnation();
+      startReincarnation(selectedCountry);
     }, 2000);
   };
 

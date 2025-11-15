@@ -230,12 +230,9 @@
 
 # Gatsby files
 **/.cache/
-**/public/*
-!**/public/audio/**
 
 # Vue.js
-**/dist/*
-!**/dist/audio/**
+**/dist/
 **/.tmp
 **/.cache
 
