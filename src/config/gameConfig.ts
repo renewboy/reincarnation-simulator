@@ -78,7 +78,7 @@ export const GAME_CONFIG = {
     },
     "countries": {
       "India": {
-        "region": "africa",
+        "region": "south_asia",
         "chineseName": "印度",
         "rank": 1,
         "births_per_year": 23940440,
