@@ -83,6 +83,7 @@ class AudioService {
       this.audioElement.load();
 
       // 播放新音乐
+      await new Promise(resolve => setTimeout(resolve, 1500));
       await this.audioElement.play();
       console.log(`开始播放${region}地区音乐`);
     } catch (error) {

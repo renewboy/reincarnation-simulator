@@ -128,21 +128,32 @@ async function getAudioPaths(exts: string[] = ['.mp3', '.wav', '.ogg'], baseDir:
 }
 
 const REGION_MUSIC_FILES: Record<Region, string[]> = (() => {
-  // glob 扫描 audio 下所有音频文件（含子目录）
-  const modules = import.meta.glob<string>('/src/audio/**/*.{mp3,wav,flac,aac,ape}', { eager: true });
-  const paths = Object.keys(modules).map(path => new URL(path, window.location.origin).href);
-  // 按 audio 下的一级目录分组（如 /audio/cn/xxx.mp3 → 分组到 cn）
-  return paths.reduce((acc, fullUrl) => {
-    // 提取区域（一级目录名）：从 URL 中截取 /audio/[region]/... 中的 region
-    const regionMatch = fullUrl.match(/\/audio\/([^\/]+)\//);
-    if (!regionMatch) return acc;
-
+  // 使用 ?url 修饰符获取构建后的正确路径
+  const audioModules = import.meta.glob<string>('/src/audio/**/*.{mp3,wav,flac,aac,ape}', { 
+    eager: true, 
+    import: 'default' 
+  });
+  
+  const result: Record<Region, string[]> = {} as Record<Region, string[]>;
+  
+  // 遍历所有音频文件
+  Object.entries(audioModules).forEach(([path, url]) => {
+    // 从路径中提取地区信息：/src/audio/africa/africa_bgm.mp3 -> africa
+    const regionMatch = path.match(/\/src\/audio\/([^\/]+)\//);
+    if (!regionMatch) return;
+    
     const region = regionMatch[1] as Region;
-    // 初始化该区域数组（若不存在），并添加当前音频路径
-    acc[region] = acc[region] || [];
-    acc[region].push(fullUrl);
-    return acc;
-  }, {} as Record<Region, string[]>);
+    
+    // 初始化该地区的数组
+    if (!result[region]) {
+      result[region] = [];
+    }
+    
+    // url 已经是构建后的正确路径
+    result[region].push(url);
+  });
+  
+  return result;
 })();
 
 /**
